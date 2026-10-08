@@ -10,15 +10,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.flipboard.bottomsheet.BottomSheetLayout;
 import com.flipboard.bottomsheet.R;
 import com.flipboard.bottomsheet.commons.ImagePickerSheetView;
@@ -103,7 +104,7 @@ public final class ImagePickerActivity extends AppCompatActivity {
                         Glide.with(ImagePickerActivity.this)
                                 .load(imageUri)
                                 .centerCrop()
-                                .crossFade()
+                                .transition(DrawableTransitionOptions.withCrossFade())
                                 .into(imageView);
                     }
                 })
@@ -233,7 +234,7 @@ public final class ImagePickerActivity extends AppCompatActivity {
         selectedImage.setImageDrawable(null);
         Glide.with(this)
                 .load(selectedImageUri)
-                .crossFade()
+                .transition(DrawableTransitionOptions.withCrossFade())
                 .fitCenter()
                 .into(selectedImage);
     }

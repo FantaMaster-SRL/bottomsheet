@@ -1,35 +1,46 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion '23.0.2'
+    namespace 'flipboard.bottomsheet.commons'
+    compileSdk 36
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 23
+        minSdk 24
     }
-    lintOptions {
-          abortOnError false
-    }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    lint {
+        abortOnError false
+    }
+
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+        }
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':bottomsheet')
-    compile 'com.android.support:appcompat-v7:23.2.0'
+    api project(':bottomsheet')
+    implementation 'androidx.annotation:annotation:1.9.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.fragment:fragment:1.8.5'
 }
 
-publish {
-    userOrg = 'flipboard'
-    groupId = 'com.flipboard'
-    artifactId = 'bottomsheet-commons'
-    publishVersion = VERSION
-    description = 'Common components library for BottomSheet'
-    website = 'https://github.com/Flipboard/bottomsheet'
-    licences = ['BSD 3-Clause']
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.FantaMaster-SRL.bottomsheet'
+                artifactId = 'bottomsheet-commons'
+                version = System.getenv('VERSION') ?: rootProject.ext.VERSION
+            }
+        }
+    }
 }

@@ -10,7 +10,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Property;
 import android.view.Gravity;
@@ -24,12 +24,18 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import flipboard.bottomsheet.R;
 
 public class BottomSheetLayout extends FrameLayout {
+
+    private int sheetBottomInset = 0;
+    private int sheetBasePaddingBottom = 0;
 
     private static final Property<BottomSheetLayout, Float> SHEET_TRANSLATION = new Property<BottomSheetLayout, Float>(Float.class, "sheetTranslation") {
         @Override
@@ -161,6 +167,41 @@ public class BottomSheetLayout extends FrameLayout {
 
         peek = 0; //getHeight() return 0 at start!
         peekKeyline = point.y - (screenWidth / (16.0f / 9.0f));
+
+        ViewCompat.setOnApplyWindowInsetsListener(this,
+                new androidx.core.view.OnApplyWindowInsetsListener() {
+                    @Override
+                    public WindowInsetsCompat onApplyWindowInsets(
+                            View v,
+                            WindowInsetsCompat insets) {
+
+                        Insets systemInsets = insets.getInsets(
+                                WindowInsetsCompat.Type.navigationBars()
+                                        | WindowInsetsCompat.Type.ime()
+                        );
+
+                        sheetBottomInset = systemInsets.bottom;
+                        applySheetBottomInset();
+
+                        return insets;
+                    }
+                });
+    }
+
+    private void applySheetBottomInset() {
+        View sheetView = getSheetView();
+        if (sheetView == null) {
+            return;
+        }
+
+        sheetView.setPadding(
+                sheetView.getPaddingLeft(),
+                sheetView.getPaddingTop(),
+                sheetView.getPaddingRight(),
+                sheetBasePaddingBottom + sheetBottomInset
+        );
+
+        sheetView.requestLayout();
     }
 
     /**
@@ -644,7 +685,14 @@ public class BottomSheetLayout extends FrameLayout {
             sheetEndX = screenWidth - sheetStartX;
         }
 
+        sheetBasePaddingBottom = sheetView.getPaddingBottom();
+
         super.addView(sheetView, -1, params);
+
+        applySheetBottomInset();
+
+        ViewCompat.requestApplyInsets(this);
+
         initializeSheetValues();
         this.viewTransformer = viewTransformer;
 
@@ -722,6 +770,14 @@ public class BottomSheetLayout extends FrameLayout {
                     currentAnimator = null;
                     setState(State.HIDDEN);
                     setSheetLayerTypeIfEnabled(LAYER_TYPE_NONE);
+
+                    sheetView.setPadding(
+                            sheetView.getPaddingLeft(),
+                            sheetView.getPaddingTop(),
+                            sheetView.getPaddingRight(),
+                            sheetBasePaddingBottom
+                    );
+
                     removeView(sheetView);
 
                     for (OnSheetDismissedListener onSheetDismissedListener : onSheetDismissedListeners) {

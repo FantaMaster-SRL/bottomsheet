@@ -2,59 +2,68 @@
 
 buildscript {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.0'
-        classpath 'com.novoda:bintray-release:0.3.4'
+        classpath 'com.android.tools.build:gradle:9.3.2'
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
 }
 
 ext {
-    VERSION = version()
+    VERSION = readVersion()
 }
 
-task bumpMajor << {
-    ant.propertyfile(file: 'version.properties') {
-        entry(key: 'major', type: 'int', operation: '+', value: 1)
-        entry(key: 'minor', type: 'int', operation: '=', value: 0)
-        entry(key: 'patch', type: 'int', operation: '=', value: 0)
+tasks.register('bumpMajor') {
+    doLast {
+        ant.propertyfile(file: 'version.properties') {
+            entry(key: 'major', type: 'int', operation: '+', value: 1)
+            entry(key: 'minor', type: 'int', operation: '=', value: 0)
+            entry(key: 'patch', type: 'int', operation: '=', value: 0)
+        }
     }
 }
 
-task bumpMinor << {
-    ant.propertyfile(file: 'version.properties') {
-        entry(key: 'minor', type: 'int', operation: '+', value: 1)
-        entry(key: 'patch', type: 'int', operation: '=', value: 0)
+tasks.register('bumpMinor') {
+    doLast {
+        ant.propertyfile(file: 'version.properties') {
+            entry(key: 'minor', type: 'int', operation: '+', value: 1)
+            entry(key: 'patch', type: 'int', operation: '=', value: 0)
+        }
     }
 }
 
-task bumpPatch << {
-    ant.propertyfile(file: 'version.properties') {
-        entry(key: 'patch', type: 'int', operation: '+', value: 1)
+tasks.register('bumpPatch') {
+    doLast {
+        ant.propertyfile(file: 'version.properties') {
+            entry(key: 'patch', type: 'int', operation: '+', value: 1)
+        }
     }
 }
 
-task genReadMe << {
-    def template = file('README.md.template').text
-    def result = template.replaceAll("%%version%%", version())
-    file("README.md").withWriter{ it << result }
+tasks.register('genReadMe') {
+    doLast {
+        def template = file('README.md.template').text
+        def result = template.replaceAll("%%version%%", readVersion())
+        file("README.md").withWriter { it << result }
+    }
 }
 
-task version << {
-    println version()
+tasks.register('printVersion') {
+    doLast {
+        println readVersion()
+    }
 }
 
-def String version() {
-    def versionPropsFile = file('version.properties')
-    def Properties versionProps = new Properties()
-    versionProps.load(new FileInputStream(versionPropsFile))
-
+String readVersion() {
+    def versionProps = new Properties()
+    file('version.properties').withInputStream { versionProps.load(it) }
     return versionProps['major'] + "." + versionProps['minor'] + "." + versionProps['patch']
 }

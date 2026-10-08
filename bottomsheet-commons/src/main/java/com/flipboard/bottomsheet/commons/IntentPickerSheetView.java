@@ -9,9 +9,9 @@ import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
-import android.support.v4.view.ViewCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+import androidx.core.view.ViewCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -167,7 +167,7 @@ public class IntentPickerSheetView extends FrameLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
         final float density = getResources().getDisplayMetrics().density;
-        getResources().getDimensionPixelSize(R.dimen.bottomsheet_default_sheet_width);
+        getResources().getDimensionPixelSize(flipboard.bottomsheet.R.dimen.bottomsheet_default_sheet_width);
         appGrid.setNumColumns((int) (width / (columnWidthDp * density)));
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
