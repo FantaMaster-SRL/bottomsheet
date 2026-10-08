@@ -34,9 +34,6 @@ import flipboard.bottomsheet.R;
 
 public class BottomSheetLayout extends FrameLayout {
 
-    private int sheetBottomInset = 0;
-    private int sheetBasePaddingBottom = 0;
-
     private static final Property<BottomSheetLayout, Float> SHEET_TRANSLATION = new Property<BottomSheetLayout, Float>(Float.class, "sheetTranslation") {
         @Override
         public Float get(BottomSheetLayout object) {
@@ -128,6 +125,9 @@ public class BottomSheetLayout extends FrameLayout {
     /** Snapshot of the sheet's state at the time of the last down event */
     private State downState;
 
+    private int sheetBottomInset = 0;
+    private int sheetBasePaddingBottom = 0;
+
     public BottomSheetLayout(Context context) {
         super(context);
         init();
@@ -168,24 +168,26 @@ public class BottomSheetLayout extends FrameLayout {
         peek = 0; //getHeight() return 0 at start!
         peekKeyline = point.y - (screenWidth / (16.0f / 9.0f));
 
-        ViewCompat.setOnApplyWindowInsetsListener(this,
-                new androidx.core.view.OnApplyWindowInsetsListener() {
-                    @Override
-                    public WindowInsetsCompat onApplyWindowInsets(
-                            View v,
-                            WindowInsetsCompat insets) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            ViewCompat.setOnApplyWindowInsetsListener(this,
+                    new androidx.core.view.OnApplyWindowInsetsListener() {
+                        @Override
+                        public WindowInsetsCompat onApplyWindowInsets(
+                                View v,
+                                WindowInsetsCompat insets) {
 
-                        Insets systemInsets = insets.getInsets(
-                                WindowInsetsCompat.Type.navigationBars()
-                                        | WindowInsetsCompat.Type.ime()
-                        );
+                            Insets systemInsets = insets.getInsets(
+                                    WindowInsetsCompat.Type.navigationBars()
+                                            | WindowInsetsCompat.Type.ime()
+                            );
 
-                        sheetBottomInset = systemInsets.bottom;
-                        applySheetBottomInset();
+                            sheetBottomInset = systemInsets.bottom;
+                            applySheetBottomInset();
 
-                        return insets;
-                    }
-                });
+                            return insets;
+                        }
+                    });
+        }
     }
 
     private void applySheetBottomInset() {
@@ -689,9 +691,10 @@ public class BottomSheetLayout extends FrameLayout {
 
         super.addView(sheetView, -1, params);
 
-        applySheetBottomInset();
-
-        ViewCompat.requestApplyInsets(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            applySheetBottomInset();
+            ViewCompat.requestApplyInsets(this);
+        }
 
         initializeSheetValues();
         this.viewTransformer = viewTransformer;
@@ -771,12 +774,14 @@ public class BottomSheetLayout extends FrameLayout {
                     setState(State.HIDDEN);
                     setSheetLayerTypeIfEnabled(LAYER_TYPE_NONE);
 
-                    sheetView.setPadding(
-                            sheetView.getPaddingLeft(),
-                            sheetView.getPaddingTop(),
-                            sheetView.getPaddingRight(),
-                            sheetBasePaddingBottom
-                    );
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                        sheetView.setPadding(
+                                sheetView.getPaddingLeft(),
+                                sheetView.getPaddingTop(),
+                                sheetView.getPaddingRight(),
+                                sheetBasePaddingBottom
+                        );
+                    }
 
                     removeView(sheetView);
 
