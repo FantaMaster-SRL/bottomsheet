@@ -127,6 +127,7 @@ public class BottomSheetLayout extends FrameLayout {
 
     private int sheetBottomInset = 0;
     private int sheetBasePaddingBottom = 0;
+    private int contentBasePaddingTop = 0;
 
     public BottomSheetLayout(Context context) {
         super(context);
@@ -168,7 +169,7 @@ public class BottomSheetLayout extends FrameLayout {
         peek = 0; //getHeight() return 0 at start!
         peekKeyline = point.y - (screenWidth / (16.0f / 9.0f));
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+        if (isEdgeToEdgeActive()) {
             ViewCompat.setOnApplyWindowInsetsListener(this,
                     new androidx.core.view.OnApplyWindowInsetsListener() {
                         @Override
@@ -184,10 +185,32 @@ public class BottomSheetLayout extends FrameLayout {
                             sheetBottomInset = systemInsets.bottom;
                             applySheetBottomInset();
 
-                            return insets;
+                            // il listener sostituisce il fitsSystemWindows di default: applichiamo
+                            // noi l'inset in alto (status bar / cutout) alla content view, non al
+                            // layout, perche' la matematica della sheet assume padding 0 sul layout
+                            Insets bars = insets.getInsets(
+                                    WindowInsetsCompat.Type.systemBars()
+                                            | WindowInsetsCompat.Type.displayCutout());
+
+                            View content = getContentView();
+                            if (content != null) {
+                                content.setPadding(
+                                        content.getPaddingLeft(),
+                                        contentBasePaddingTop + bars.top,
+                                        content.getPaddingRight(),
+                                        content.getPaddingBottom());
+                            }
+
+                            // applica gli stessi insets che applichiamo alle altre activity
+                            return new WindowInsetsCompat.Builder(insets).setInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout(), Insets.NONE).build();
+                            //return insets;
                         }
                     });
         }
+    }
+
+    private boolean isEdgeToEdgeActive() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM;
     }
 
     private void applySheetBottomInset() {
@@ -634,6 +657,7 @@ public class BottomSheetLayout extends FrameLayout {
      * @param contentView The content view of your application.
      */
     public void setContentView(View contentView) {
+        contentBasePaddingTop = contentView.getPaddingTop();
         super.addView(contentView, -1, generateDefaultLayoutParams());
         super.addView(dimView, -1, generateDefaultLayoutParams());
     }
@@ -691,7 +715,7 @@ public class BottomSheetLayout extends FrameLayout {
 
         super.addView(sheetView, -1, params);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+        if (isEdgeToEdgeActive()) {
             applySheetBottomInset();
             ViewCompat.requestApplyInsets(this);
         }
@@ -774,7 +798,7 @@ public class BottomSheetLayout extends FrameLayout {
                     setState(State.HIDDEN);
                     setSheetLayerTypeIfEnabled(LAYER_TYPE_NONE);
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                    if (isEdgeToEdgeActive()) {
                         sheetView.setPadding(
                                 sheetView.getPaddingLeft(),
                                 sheetView.getPaddingTop(),
